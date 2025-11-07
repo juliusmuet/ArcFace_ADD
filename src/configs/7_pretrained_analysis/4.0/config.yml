@@ -1,0 +1,78 @@
+model_checkpoint:   # Only use for large-margin fine-tuning
+
+train_args:
+  num_epochs: 10
+  save_epoch_interval: 1 # Save model every 1 epoch
+  log_interval: 500 # Log training process every 100 batches
+  accumulation_interval: 4 # Gradient accumulation, Set to higher number, e.g. 16 
+  lm_finetune: False
+
+loss_balancer:
+  loss_balancer_name: WeightedSum
+  loss_balancer_args: {}
+
+train_dataset:
+  dataset_string: 
+  dataset_string_genuine_only: VoxCeleb1 VoxCeleb2
+  speaker_label_encoder: SpkLabelEncoder  # SpkLabelEncoder, AlternatingGenuineDeepfakePairEncoder, GroupedGenuineDeepfakePairEncoder, DeepfakeUnifiedEncoder
+  filter_out_vocoder: False
+  vocoder_as_genuine: True
+
+train_dataloader:
+  dataloader_args:
+    num_workers: 8  # Set to higher number, e.g. 6, 8, or 16
+    pin_memory: True
+    prefetch_factor: 4  # Set to higher number, e.g. 4 or 8
+  sampler_args:   
+    sampler: SpeakerBalancedBatchSampler  # SpeakerBalancedBatchSampler, SpeakerGenuineFakeBalancedSampler, GenuineFakeBalancedSampler
+    n_speakers_per_batch: 8
+    n_utterances_per_speaker: 4
+
+preprocessing:
+  duration: 2 # For evaluation this is internally -1, so no fixed duration during evaluation
+  sample_rate: 16000
+  silence_threshold: 30
+  remove_leading_trailing_silence: True
+  remove_all_silence: False
+
+frontend:
+  model_name: wavlm_large
+  model_args:
+    finetune: True
+    output_layers: 
+    layer_norm: True
+    output_dim: 80
+    adapter: ResidualAdapter
+
+backend:
+  model_name: ECAPA_TDNN_GLOB_c1024
+  model_args: {}
+  checkpoint_path: 
+
+embedding_projection:
+  projection_name: ArcFace
+  projection_args: 
+    margin: 0.3 # Will be overridden if margin scheduler is configured
+    scale: 64.0
+    easy_margin: False
+  loss:
+    loss_name: CrossEntropyLoss
+    loss_args:
+      reduction: 'none'
+
+optimiser:
+  optimiser_name: Adam
+  optimiser_args:
+    backend:
+      lr: 0.001
+      weight_decay: 0.0
+    ssl:
+      lr: 0.00001
+      weight_decay: 0.0
+    other_args:
+
+lr_scheduler:
+  scheduler_name: ExponentialDecrease # ExponentialDecrease, CosineDecrease
+  scheduler_args:
+    warmup_epoch: 2 # 0 for no warmup
+    target_lr: 0.00001

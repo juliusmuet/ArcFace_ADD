@@ -9,13 +9,13 @@
 
 ## Abstract
 
-This thesis investigates reference-based audio deepfake detection (ADD) by adapting automatic speaker verification (ASV) systems. Traditional ADD methods often rely on signal-level artefacts and do not leverage reference speech from the target speaker, limit-ing their ability to assess speaker authenticity and to generalise across diverse speakers, synthesis techniques and real-world acoustic conditions. ASV systems, particularly those trained with ArcFace, produce highly discriminative embeddings, that separate speaker identities effectively, and provide a promising foundation for detecting subtle inconsisten-cies between genuine and synthetic utterances.
+This thesis investigates reference-based audio deepfake detection (ADD) by adapting automatic speaker verification (ASV) systems. Traditional ADD methods often rely on signal-level artefacts and do not leverage reference speech from the target speaker, limiting their ability to assess speaker authenticity and to generalise across diverse speakers, synthesis techniques and real-world acoustic conditions. ASV systems, particularly those trained with ArcFace, produce highly discriminative embeddings, that separate speaker identities effectively, and provide a promising foundation for detecting subtle inconsistencies between genuine and synthetic utterances.
 
 The work introduces a modular framework combining discriminative speaker embed-dings, self-supervised learning (SSL) based representations and a modified ArcFace loss for spoof-aware representation learning among other targeted experimental investigations. The proposed loss adds a deepfake-specific term that prevents synthetic utterances from influencing genuine speaker centres during training, while pushing deepfake embeddings away from the cluster of genuine samples of a speaker. This yields embeddings that are identity-discriminative and manipulation-aware, enabling ADD by thresholding the cosine similarity of the suspect and a reference audio utterance.
 
-Extensive experiments on SpoofCeleb, ASVspoof 5, and In-the-Wild (ITW) demonstrate consistent improvements over baselines and state-of-the-art ADD systems, achieving SPF-EERs of 0.95% on SpoofCeleb-Eval and 2.92% on ITW. In particular, SSL frontends, ASV pretraining and a length-based classifier, that utilises embedding magnitude, im-proves generalisation and robustness across domains and real-world conditions.
+Extensive experiments on SpoofCeleb, ASVspoof 5 and In-the-Wild (ITW) demonstrate consistent improvements over baselines and state-of-the-art ADD systems, achieving SPF-EERs of 0.95% on SpoofCeleb-Eval and 2.92% on ITW. In particular, SSL frontends, ASV pretraining and a length-based classifier, that utilises embedding magnitude, im-proves generalisation and robustness across domains and real-world conditions.
 
-Overall, these results show that ASV architectures can be effectively adapted for refer-ence-based ADD through targeted architectural and loss modifications. By explicitly lev-eraging speaker identity alongside deepfake artefacts, the proposed framework provides a robust, generalisable and scalable solution for reliable ADD in practical scenarios.
+Overall, these results show that ASV architectures can be effectively adapted for reference-based ADD through targeted architectural and loss modifications. By explicitly leveraging speaker identity alongside deepfake artefacts, the proposed framework provides a robust, generalisable and scalable solution for reliable ADD in practical scenarios.
 
 
 ---
@@ -36,28 +36,30 @@ Key contributions:
 
 ## 📁 Project Structure
 ```
-src
-├── Train.py              # Train ADD system
-├── Test.py               # Evaluate ADD system
-├── Test_SV.py            # Evaluate ASV system
-├── Inference.py          # Run inference / ADD detection
-├── backends_3dspeaker/   # Backend architectures (3D-Speaker models)
-├── backends_wespeaker/   # Backend architectures (WeSpeaker models)
-├── classifiers/          # Length-based classifier
-├── configs/              # Experiment configurations (YAML recipes)
-├── datasets/             # Dataset creation and loaders
-├── frontends/            # Feature extraction modules (fbank, WavLM)
-├── losses/               # ArcFace variants and schedulers
-├── preprocessing/        # Audio loading, preprocessing and data augmentation 
-├── speaker_embedder/     # Combined frontend-backend model
-├── train/                # Trainer, schedulers, evaluation utilities
-├── utils/                # Config loading and factory utilities
-└── utils_data/           # Dataset restructuring and trial generation tools
+├──Pretrained_Models_3DSpeaker  # Pretrained model checkpoints from the 3D-Speaker repository
+├──Pretrained_Models_WeSpeaker  # Pretrained model checkpoints from the WeSpeaker repository
+├──src                          # Source code 
+    ├── Train.py                # Train ADD system
+    ├── Test.py                 # Evaluate ADD system
+    ├── Test_SV.py              # Evaluate ASV system
+    ├── Inference.py            # Run inference / ADD detection
+    ├── backends_3dspeaker/     # Backend architectures from the 3D-Speaker repository
+    ├── backends_wespeaker/     # Backend architectures from the WeSpeaker repository
+    ├── classifiers/            # Length-based classifier
+    ├── configs/                # Experiment configurations (YAML recipes)
+    ├── datasets/               # Dataset creation and loaders
+    ├── frontends/              # Feature extraction modules (fbank, WavLM)
+    ├── losses/                 # ArcFace variants and schedulers
+    ├── preprocessing/          # Audio loading, preprocessing and data augmentation 
+    ├── speaker_embedder/       # Combined frontend-backend model
+    ├── train/                  # Trainer, schedulers, evaluation utilities
+    ├── utils/                  # Config loading and factory utilities
+    └── utils_data/             # Dataset restructuring and trial generation tools
 ```
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Installation & Setup
 
 **Python version:** 3.10.12
 
@@ -88,15 +90,26 @@ conda activate arcface_add
 pip install -r requirements.txt
 ```
 
+### Pretrained Model Checkpoints:
+Before running the code, download the pretrained ASV checkpoints from the corresponding repositories:  
+- 3D-Speaker: [https://github.com/modelscope/3D-Speaker](https://github.com/modelscope/3D-Speaker)  
+- WeSpeaker: [https://github.com/wenet-e2e/wespeaker](https://github.com/wenet-e2e/wespeaker)  
+Place the downloaded checkpoint files in the directories `Pretrained_Models_3DSpeaker/` and `Pretrained_Models_WeSpeaker/` respectively.
+
+### Datasets:
+Dataset paths and trial files are specified in `config.yml` as described below.  
+Users must implement the `load_data()` function in `datasets/dataset_df.py` according to their dataset structure and requirements, ensuring it outputs a list containing dictionaries with `speaker_id`, `is_spoof`, and `wav_path` for each audio file.
+
 ---
 
 ## 🧩 Configuration
 
 All experimental settings are controlled through YAML config files in `src/configs/`.  
 Below is an example for **training**, **validation**, **evaluation** and **dataset setup**.
-Not all parameters need to be specified, as then default values will be used. Missing parameters are reported in error messages.
+Not all parameters need to be specified, as then default values will be used. Missing parameters are reported in error messages.  
+**All YAML recipes of all model configurations investigated for this thesis are included in this repository.**
 
-### example.yml`
+### `example.yml`
 ```yaml
 model_checkpoint: 'pretrained_model.pt' # Pretrained ADD checkpoint
 
@@ -232,7 +245,7 @@ lr_scheduler:   # Configuration for used learning rate scheduler (optional)
     target_lr: 0.00001  # Final learning rate
 ```
 
-### Example: `config.yml`
+### `config.yml`
 This config file contains dataset paths and the used random seed
 ```yaml
 seed: 42
@@ -288,11 +301,15 @@ python src/Test_SV.py src/configs/7_pretrained_analysis/1 --checkpoint checkpoin
 ### Inference
 Interactive mode:
 ```bash
-python src/Inference.py src/configs/2_frontend_analysis/1 --checkpoint checkpoint_epoch_10.pt
+python src/Inference.py src/configs/2_frontend_analysis/1 --checkpoint checkpoint_epoch_10.pt --threshold 0.5 --fusion weighted_sum --alpha 0.5
 ```
-Batch mode using file pairs:
+Single mode using a reference audio and a suspect audio:
 ```bash
-python src/Inference.py src/configs/2_frontend_analysis/1 --checkpoint checkpoint_epoch_10.pt --infer_file pairs.txt
+python src/Inference.py src/configs/2_frontend_analysis/1 --checkpoint checkpoint_epoch_10.pt --threshold 0.5 --fusion weighted_sum --alpha 0.5 --audio1 reference.wav --audio2 suspect.wav
+```
+Batch mode using pairs from a file:
+```bash
+python src/Inference.py src/configs/2_frontend_analysis/1 --checkpoint checkpoint_epoch_10.pt --threshold 0.5 --fusion weighted_sum --alpha 0.5 --infer_file pairs.txt
 ```
 
 ---
@@ -330,6 +347,7 @@ If you use this code or framework, please cite:
   author={Julius Müther},
   school={Ruhr-University Bochum},
   year={2025},
+  url={https://github.com/juliusmuet/ArcFace_ADD},
   note={In cooperation with the Federal Office for Information Security (BSI)}
 }
 ```

@@ -1,0 +1,29 @@
+seed: 42
+
+# Configuration for dataloading utils
+dataset_base_path: '.../Datasets'
+verbose: false
+
+# Configuration for speaker verification evaluation tasks
+speaker_verification_evaluation:
+  vox1_o_clean:
+    trial_file: '.../vox1-O-clean.txt'
+    base_audio_path: .../vox1_test_wav/wav'
+
+# Configuration for deepfake speaker verification detection evaluation task
+deepfake_speaker_verification_evaluation:
+  SPOOFCELEB_Validation:
+    trial_file: '.../spoofceleb/spoofceleb/protocol/sasv_development_evaluation_protocol.csv'
+    base_audio_path: '.../spoofceleb/spoofceleb/flac/development/'
+  SPOOFCELEB_Test:
+    trial_file: '.../spoofceleb/spoofceleb/protocol/sasv_evaluation_evaluation_protocol.csv'
+    base_audio_path: '.../spoofceleb/spoofceleb/flac/evaluation/'
+  ITW:
+    trial_file: ".../release_in_the_wild/trials.txt"
+    base_audio_path: ".../release_in_the_wild/"
+  ASVspoof5_dev:
+    trial_file: ".../ASVspoof5/ASVspoof5_protocols/dev_trials.txt"
+    base_audio_path: ".../ASVspoof5/"
+  ASVspoof5_eval:
+    trial_file: ".../ASVspoof5/ASVspoof5_protocols/eval_trials.txt"
+    base_audio_path: ".../ASVspoof5/"
